@@ -59,12 +59,12 @@ contract E_Voting is Ownable {
      state = State.Voting;
     }
 
-    function vote(uint256 _CandidateId, address voterAddress) external inState(State.Voting) {
+    function vote(uint256 _CandidateId) external inState(State.Voting) {
 
-     require(voted[voterAddress]==false,"You have already voted from this address!");
+     require(voted[msg.sender]==false,"You have already voted from this address!");
 
-     voterToCandidate[voterAddress]=Candidates[_CandidateId]._CandidateAddress;
-     voted[voterAddress]=true;
+     voterToCandidate[msg.sender]=Candidates[_CandidateId]._CandidateAddress;
+     voted[msg.sender]=true;
      Candidates[_CandidateId].candidate_votes++;
      totalVoters++;
 
@@ -92,5 +92,5 @@ contract E_Voting is Ownable {
 
 }
 
-//E_Voting Contract Deployed to :  0x9e93Fa26D51289863c5AEE7a68f5a1c4354eE623
+//E_Voting Contract Deployed to :  0x9cA5DE2675Fe65744fc7bDA4458Af231b135a9d5
 

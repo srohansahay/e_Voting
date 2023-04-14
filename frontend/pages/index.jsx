@@ -187,12 +187,12 @@ export default function Home() {
     }
   }
 
-  const vote = async(candidateId,_voterAddress) => {
+  const vote = async(candidateId) => {
     try {
       const signer   = await getProviderOrSigner(true);
       const contract = getE_VotingContractInstance(signer);
 
-      const txn = await contract.vote(candidateId,_voterAddress);
+      const txn = await contract.vote(candidateId);
       setLoading(true);
       await txn.wait();
       await getNumVoters();
@@ -303,7 +303,7 @@ export default function Home() {
 
   }
 
-  const votePage = (props) => {
+  const votePage = () => {
 
     if (loading) {
       return (<><h1 className={styles.title}>
@@ -323,7 +323,7 @@ export default function Home() {
               <div className={styles.flex}>
                   <button
                     className={styles.button2}
-                    onClick={() => vote(p.id,props.account)}
+                    onClick={() => vote(p.id)}
                   >
                     Vote 
                   </button>

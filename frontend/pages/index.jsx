@@ -75,6 +75,7 @@ export default function Home() {
           setIsOwner(true);
         }
     } catch (err) {
+
       console.error(err.message);
     }
   };
@@ -141,8 +142,10 @@ export default function Home() {
       await txn.wait();
      // setElectionStarted(true);
      await fetchAllCandidates();
-     setSelectedTab("Election started and Admin or Candidate")
       setLoading(false);
+      if(isOwner){setSelectedTab("Election started and Admin");}
+      else{setSelectedTab("Election started and Voter");}
+      
       
     } catch (error) {
       console.error(error.message);
@@ -261,9 +264,10 @@ export default function Home() {
   useEffect(() => {
     if (selectedTab === "Election not yet started") {
       fetchAllCandidates();
+      console.log(candidates);
     }
   }, [selectedTab]);
-  
+
 
   function renderTabs() {
     if (selectedTab === "addingCandidates") {
@@ -273,7 +277,7 @@ export default function Home() {
     } else if (selectedTab === "Election started and Voter") {
       return voteTab();
     }
-    else if (selectedTab === "Election started and Admin or Candidate") {
+    else if (selectedTab === "Election started and Admin") {
       return viewElectionTab();
     } 
     else if(selectedTab === "Results Tab") {
@@ -286,18 +290,22 @@ export default function Home() {
 
     if (!walletConnected) {
       return (
-        <><h1 className={styles.title}>
+        <><div className={styles.login}>
+          <h1 className={styles.title}>
           Welcome to <a href="#">E-Voting</a>
-        </h1><button onClick={() => connectWallet()} className={styles.button}>
+        </h1>
+        <br></br><button onClick={() => connectWallet()} className={styles.button3}>
             Connect your wallet
-          </button></>
+          </button>
+          </div></>
       );
     }
+  
 
     if (loading) {
-      return (<><h1 className={styles.title}>
+      return (<><div className={styles.login}><h1 className={styles.title}>
         Welcome to <a href="#">E-Voting</a>
-      </h1><button className={styles.button}>Loading...</button></>);
+      </h1><button className={styles.button3}>Loading...</button></div></>);
     }
 
     if(isOwner && selectedTab === "Election not yet started") {
@@ -305,10 +313,10 @@ export default function Home() {
         <div className={styles.container}>
              <h1 className={styles.title}>Welcome Admin</h1>
           {candidates.map((p, index) => (
-            <div key={index} className={styles.candidateCard}>
-              <p>Candidate ID: {p.candidateId}</p>
-              <p>Candidate Name: {p.candidateName}</p>
-              <p>Address: {p.candidateAddress}</p>
+            <div key={index} className={styles.login}>
+              <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
+              <p className={styles.subheading}>Candidate Name: <span className={styles.lightText}>{p.candidateName}</span></p>
+              <p className={styles.subheading}>Address: <span className={styles.lightText}>{p.candidateAddress}</span></p>
             </div>
           ))}
             <button className={styles.button2} onClick={() => setSelectedTab("addingCandidates")}>
@@ -317,6 +325,7 @@ export default function Home() {
             <button className={styles.button2} onClick={() => startElection()}>
               Start Election
             </button>
+            
           </div>
       );
     }
@@ -324,12 +333,15 @@ export default function Home() {
     if(!isOwner && selectedTab === "Election not yet started") {
       return (
         <div className={styles.container}>
+          <h1 className={styles.title}>Winner is :</h1>
            {candidates.map((p, index) => (
-            <div key={index} className={styles.candidateCard}>
-              <p>Candidate ID: {p.candidateId}</p>
-              <p>Candidate Name: {p.candidateName}</p>
-              <p>Address: {p.candidateAddress}</p>
-            </div>
+            <><div key={index} className={styles.login}>
+               <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
+               <p className={styles.subheading}>Candidate Name: <span className={styles.lightText}>{p.candidateName}</span></p>
+               <p className={styles.subheading}>Address: <span className={styles.lightText}>{p.candidateAddress}</span></p>
+               <p className={styles.subheading}>Votes: <span className={styles.lightText}>16</span></p>
+
+             </div></>
           ))}
             <p>Election is not yet started.</p>
           </div>
@@ -380,19 +392,24 @@ export default function Home() {
   const addCandidateTab = ()=> {
     return (
       <div className={styles.container}>
-      <label>Candidate : </label>
-          <input
+        <h1 className={styles.title}>Add New Candidate</h1>
+        <br></br>
+      <label className={styles.subheading}>Candidate : </label>
+          <input className={styles.input}
             placeholder="Name of the Candidate"
             type="string"
             onChange={(e) => setCandidateName(e.target.value)}
           />
-          <input
+          <input className={styles.input}
             placeholder="Address of the Candidate"
             type="string"
             onChange={(e) => setCandidateAddress(e.target.value)}
           />
+
+          
+          <br></br>
           <button className={styles.button2} onClick={()=>registerCandidate((ethers.utils.getAddress(candidateAddress)),candidateName)}>
-            Register
+            Register New Candidate
           </button>
     </div>
 
@@ -428,7 +445,7 @@ export default function Home() {
               </div>
             ))}
             <button className={styles.button2} onClick={()=> setSelectedTab("Results Tab")}>
-            Register
+            End Election
           </button>
           </div>
 
@@ -455,6 +472,8 @@ export default function Home() {
         </Head>
   
         <main className={styles.main}>
+
+        
           
           <div className={styles.description}>
           
@@ -464,6 +483,7 @@ export default function Home() {
   
          
         </main>
+       
       </div>
     );
 

@@ -46,10 +46,10 @@ contract E_Voting is Ownable {
     function registerCandidate(address _Address, string memory _name) external inState(State.Created) onlyOwner returns(uint256){
 
         for (uint256 i = 0; i < totalCandidates; i++) {
-         //require(Candidates(i)._CandidateAddress != _Address,"Candidate is already registered");
+         
          require(candidates[i]._CandidateAddress != _Address,"Candidate is already registered");
         }
-        //Candidates.push(Candidate(_name,totalCandidates, _Address, 0));
+      
         Candidate storage candidate = candidates[totalCandidates];
         candidate._CandidateAddress = _Address;
         candidate.name = _name;
@@ -72,7 +72,6 @@ contract E_Voting is Ownable {
 
      require(voted[msg.sender]==false,"You have already voted from this address!");
 
-     //voterToCandidate[msg.sender]=Candidates[_CandidateId]._CandidateAddress;
      candidates[_CandidateId].candidate_votes++;
      voted[msg.sender]=true;
      totalVoters++;

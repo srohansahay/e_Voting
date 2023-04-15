@@ -1,5 +1,5 @@
 import { ethers, Contract, providers } from "ethers";
-import { formatEther } from "ethers/lib/utils";
+//import { formatEther } from "ethers/lib/utils";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
@@ -8,8 +8,8 @@ import {
   E_VOTING_CONTRACT_ADDRESS,
 } from "../constants";
 import styles from "../styles/Home.module.css";
-import { BrowserRouter as Router, Switch, 
-  Route, Redirect,} from "react-router-dom";
+/*import { BrowserRouter as Router, Switch, 
+  Route, Redirect,} from "react-router-dom";*/
 
 export default function Home() {
 
@@ -24,8 +24,8 @@ export default function Home() {
   const [candidateName, setCandidateName] = useState("");
   const [candidateAddress, setCandidateAddress] = useState("");
   const [candidates, setCandidates] = useState([]);
-  const [addingCandidates,setAddingCandidates] = useState(false);
-  //const [selectedTab, setSelectedTab] = useState("");
+  /*const [addingCandidates,setAddingCandidates] = useState(false);*/
+  const [selectedTab, setSelectedTab] = useState("Election not yet started");
   
 
   const connectWallet = async () => {
@@ -90,7 +90,8 @@ export default function Home() {
       setLoading(true);
       await txn.wait();
       await getNumCandidates();
-      await setAddingCandidates(false);
+      await fetchAllCandidates();
+     // await setAddingCandidates(false);
       setLoading(false);
       
     } catch (error) {
@@ -103,7 +104,7 @@ export default function Home() {
     try {
       const provider = await getProviderOrSigner();
       const contract = getE_VotingContractInstance(provider);
-      const candidate = await contract.Candidates(id);
+      const candidate = await contract.candidates(id);
       const parsedCandidate = {
         candidateId: id,
         candidateName: candidate.name,
@@ -138,7 +139,9 @@ export default function Home() {
       const txn = await contract.startElection();
       setLoading(true);
       await txn.wait();
-      await setElectionStarted(true);
+     // setElectionStarted(true);
+     await fetchAllCandidates();
+     setSelectedTab("Election started and Admin or Candidate")
       setLoading(false);
       
     } catch (error) {
@@ -152,7 +155,7 @@ export default function Home() {
       const provider = await getProviderOrSigner();
       const contract = getE_VotingContractInstance(provider);
 
-      const numCandidates = await contract.totalCandidates;
+      const numCandidates = await contract.totalCandidates();
       setNumCandidates(numCandidates.toString());
       
     } catch (error) {
@@ -165,22 +168,8 @@ export default function Home() {
       const provider = await getProviderOrSigner();
       const contract = getE_VotingContractInstance(provider);
 
-      const numVoters = await contract.totalVoters;
+      const numVoters = await contract.totalVoters();
       setNumVoters(numVoters.toString());
-      
-    } catch (error) {
-      console.error(error.message);
-    }
-  }
-
-  const getCandidateVotes = async(candidateId) => {
-    try {
-      const provider = await getProviderOrSigner();
-      const contract = getE_VotingContractInstance(provider);
-
-      const candidateVotes = await contract.Candidate[candidateId].candidate_votes();
-
-      return candidateVotes;
       
     } catch (error) {
       console.error(error.message);
@@ -204,6 +193,37 @@ export default function Home() {
     }
   }
 
+  const checkIfVoted = async() => {
+    try {
+      const provider = await getProviderOrSigner(false);
+      const contract = getE_VotingContractInstance(provider);
+
+      const checkVoted = await contract.voted(web3.eth.accounts[0])
+      
+      return checkVoted;
+      
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
+  const endElection = async() => {
+    try {
+      const signer = await getProviderOrSigner(true);
+      const contract = getE_VotingContractInstance(signer);
+
+      const txn = await contract.endElection();
+      setLoading(true);
+      await txn.wait();
+      setLoading(false);
+      
+      return txn;
+      
+    } catch (error) {
+      console.error(error.message);
+    }
+  }  
+
   
 
   useEffect(() => {
@@ -217,19 +237,19 @@ export default function Home() {
       connectWallet().then(() => {
        // getDAOTreasuryBalance();
        // getUserNFTBalance();
-       // getNumProposalsInDAO();
+        getNumCandidates();
         getOwner();
       });
     }
   }, [walletConnected]);
 
-  useEffect(()=> {
+  /*useEffect(()=> {
     if(!electionStarted){
       fetchAllCandidates();
       console.log(candidates);
     }
 
-  },[addingCandidates])
+  },[addingCandidates])*/
 
  /* useEffect(()=>{
     if(addingCandidates){
@@ -238,7 +258,31 @@ export default function Home() {
 
   },[addingCandidates]);*/
 
-  const renderButton = () => {
+  useEffect(() => {
+    if (selectedTab === "Election not yet started") {
+      fetchAllCandidates();
+    }
+  }, [selectedTab]);
+  
+
+  function renderTabs() {
+    if (selectedTab === "addingCandidates") {
+      return addCandidateTab();
+    } else if (selectedTab === "Election not yet started") {
+      return electionNotStartedTab();
+    } else if (selectedTab === "Election started and Voter") {
+      return voteTab();
+    }
+    else if (selectedTab === "Election started and Admin or Candidate") {
+      return viewElectionTab();
+    } 
+    else if(selectedTab === "Results Tab") {
+      return resultsTab();
+    }
+    return null;
+  }
+
+  const electionNotStartedTab = () => {
 
     if (!walletConnected) {
       return (
@@ -256,17 +300,18 @@ export default function Home() {
       </h1><button className={styles.button}>Loading...</button></>);
     }
 
-    if(isOwner && !electionStarted) {
+    if(isOwner && selectedTab === "Election not yet started") {
       return (
         <div className={styles.container}>
+             <h1 className={styles.title}>Welcome Admin</h1>
           {candidates.map((p, index) => (
             <div key={index} className={styles.candidateCard}>
-              <p>Candidate ID: {p.id}</p>
-              <p>Candidate Name: {p.name}</p>
-              <p>Address: {p._CandidateAddress.toString()}</p>
+              <p>Candidate ID: {p.candidateId}</p>
+              <p>Candidate Name: {p.candidateName}</p>
+              <p>Address: {p.candidateAddress}</p>
             </div>
           ))}
-            <button className={styles.button2} onClick={() => setAddingCandidates(true)}>
+            <button className={styles.button2} onClick={() => setSelectedTab("addingCandidates")}>
               Add Candidate
             </button>
             <button className={styles.button2} onClick={() => startElection()}>
@@ -276,26 +321,17 @@ export default function Home() {
       );
     }
 
-    if(!isOwner) {
+    if(!isOwner && selectedTab === "Election not yet started") {
       return (
-       
         <div className={styles.container}>
-           <h1 className={styles.title}>
-        Welcome Admin 
-      </h1>
-          {candidates.map((p, index) => (
+           {candidates.map((p, index) => (
             <div key={index} className={styles.candidateCard}>
-              <p>Candidate ID: {p.id}</p>
-              <p>Candidate Name: {p.name}</p>
-              <p>Address: {p._CandidateAddress.toString()}</p>
+              <p>Candidate ID: {p.candidateId}</p>
+              <p>Candidate Name: {p.candidateName}</p>
+              <p>Address: {p.candidateAddress}</p>
             </div>
           ))}
-            <button className={styles.button2} onClick={() => setAddingCandidates(true)}>
-              Add Candidate
-            </button>
-            <button className={styles.button2} onClick={() => startElection()}>
-              Start Election
-            </button>
+            <p>Election is not yet started.</p>
           </div>
       );
 
@@ -303,7 +339,7 @@ export default function Home() {
 
   }
 
-  const votePage = () => {
+  const voteTab = () => {
 
     if (loading) {
       return (<><h1 className={styles.title}>
@@ -311,19 +347,19 @@ export default function Home() {
       </h1><button className={styles.button}>Loading...</button></>);
     }
 
-    if(!isOwner) {
+    else if(!checkIfVoted()){
 
       return (
         <div>
           {candidates.map((p, index) => (
             <div key={index} className={styles.candidateCard}>
-              <p>Candidate ID: {p.id}</p>
-              <p>Candidate Name: {p.name}</p>
-              <p>Address: {p._CandidateAddress.toString()}</p>
+             <p>Candidate ID: {p.candidateId}</p>
+              <p>Candidate Name: {p.candidateName}</p>
+              <p>Address: {p.candidateAddress}</p>
               <div className={styles.flex}>
                   <button
                     className={styles.button2}
-                    onClick={() => vote(p.id)}
+                    onClick={() => vote(p.candidateId)}
                   >
                     Vote 
                   </button>
@@ -335,35 +371,13 @@ export default function Home() {
 
     }
 
+    else if(checkIfVoted()){
+      <p>You've already voted!</p>
+    }
+
   } 
 
-  function renderCandidatesTab() {
-    if (loading) {
-      return (
-        <div className={styles.description}>
-          Loading... Waiting for transaction...
-        </div>
-      );
-    } else if (candidates.length === 0) {
-      return (
-        <div className={styles.description}>No candidates have been registered</div>
-      );
-    } else {
-      return (
-        <div>
-          {candidates.map((p, index) => (
-            <div key={index} className={styles.candidateCard}>
-              <p>Candidate ID: {p.id}</p>
-              <p>Candidate Name: {p.name}</p>
-              <p>Address: {p._CandidateAddress.toString()}</p>
-            </div>
-          ))}
-        </div>
-      );
-    }
-  }
-
-  const addCandidate = ()=> {
+  const addCandidateTab = ()=> {
     return (
       <div className={styles.container}>
       <label>Candidate : </label>
@@ -386,41 +400,48 @@ export default function Home() {
     
   }
 
-  function renderTabs() {
-    if (addingCandidates) {
-      return addCandidate();
-    } else if (!addingCandidates && !electionStarted) {
-      return renderButton();
-    } else if (electionStarted && !electionEnded) {
-      return votePage();
+  const viewElectionTab = () => {
+    if(!isOwner){
+      return (
+        <div>
+            {candidates.map((p, index) => (
+              <div key={index} className={styles.candidateCard}>
+               <p>Candidate ID: {p.candidateId}</p>
+                <p>Candidate Name: {p.candidateName}</p>
+                <p>Address: {p.candidateAddress}</p>
+                <p>Votes: {p. candidateVotes}</p>
+              </div>
+            ))}
+          </div>
+  
+      );
     }
-    return null;
+
+    if(isOwner){
+      <div>
+            {candidates.map((p, index) => (
+              <div key={index} className={styles.candidateCard}>
+               <p>Candidate ID: {p.candidateId}</p>
+                <p>Candidate Name: {p.candidateName}</p>
+                <p>Address: {p.candidateAddress}</p>
+                <p>Votes: {p. candidateVotes}</p>
+              </div>
+            ))}
+            <button className={styles.button2} onClick={()=> setSelectedTab("Results Tab")}>
+            Register
+          </button>
+          </div>
+
+    }
+
   }
 
-  
+  const resultsTab = () => {
+    <div>
+      <p>Winner is {candidates[endElection()].candidateName}!</p>
+    </div>
+  }
 
-  /*const renderCreateElectionPage = () => {
-
-      return (
-        <div className={styles.container}>
-          <label>Fake NFT Token ID to Purchase: </label>
-          <input
-            placeholder="0"
-            type="string"
-            onChange={(e) => setCandidateName(e.target.value)}
-          />
-          <button className={styles.button2} onClick={()=>null}>
-            Create
-          </button>
-        </div>
-      );
-
-  }*/
-
-
-
-
- 
 
     return (
       <div className={styles.container}>

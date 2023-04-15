@@ -7,17 +7,15 @@ contract E_Voting is Ownable {
 
  uint256 public totalCandidates;
  uint256 public totalVoters;
- uint256 public totalElections;
+ //uint256 public totalElections;
 
  constructor(){
    state = State.Created;
  }
-
- Candidate[] Candidates;
  
  mapping (address => bool) voted;
 
- mapping (address => address) voterToCandidate;
+ //mapping (address => address) voterToCandidate;
 
 
   /*struct Voter {
@@ -32,7 +30,10 @@ contract E_Voting is Ownable {
         uint256 id;
         address _CandidateAddress;
         uint256 candidate_votes;
+        //mapping(uint256 => bool) voters;
     }
+
+    mapping(uint256 => Candidate) public candidates;
 
     enum State { Created, Voting, Ended }
     State public state;
@@ -42,13 +43,21 @@ contract E_Voting is Ownable {
         _;
     }
 
-    function registerCandidate(address _Address, string memory _name) external inState(State.Created) onlyOwner {
+    function registerCandidate(address _Address, string memory _name) external inState(State.Created) onlyOwner returns(uint256){
 
-        for (uint256 i = 0; i < Candidates.length; i++) {
-         require(Candidates[i]._CandidateAddress != _Address,"Candidate is already registered");
+        for (uint256 i = 0; i < totalCandidates; i++) {
+         //require(Candidates(i)._CandidateAddress != _Address,"Candidate is already registered");
+         require(candidates[i]._CandidateAddress != _Address,"Candidate is already registered");
         }
-        Candidates.push(Candidate(_name,totalCandidates, _Address, 0));
+        //Candidates.push(Candidate(_name,totalCandidates, _Address, 0));
+        Candidate storage candidate = candidates[totalCandidates];
+        candidate._CandidateAddress = _Address;
+        candidate.name = _name;
+        candidate.id = totalCandidates;
+        
         totalCandidates++;
+
+        return totalCandidates-1;
     }
 
     
@@ -63,9 +72,9 @@ contract E_Voting is Ownable {
 
      require(voted[msg.sender]==false,"You have already voted from this address!");
 
-     voterToCandidate[msg.sender]=Candidates[_CandidateId]._CandidateAddress;
+     //voterToCandidate[msg.sender]=Candidates[_CandidateId]._CandidateAddress;
+     candidates[_CandidateId].candidate_votes++;
      voted[msg.sender]=true;
-     Candidates[_CandidateId].candidate_votes++;
      totalVoters++;
 
     }
@@ -74,12 +83,12 @@ contract E_Voting is Ownable {
 
      state = State.Ended;
 
-     uint256 maxVotes = Candidates[0].candidate_votes;
+     uint256 maxVotes = candidates[0].candidate_votes;
      uint256 winnerId = 0;
 
      for(uint256 i=0; i<totalCandidates;i++){
-      if(Candidates[i].candidate_votes>maxVotes){
-       maxVotes = Candidates[i].candidate_votes;
+      if(candidates[i].candidate_votes>maxVotes){
+       maxVotes = candidates[i].candidate_votes;
        winnerId = i;
       }
      }
@@ -92,5 +101,4 @@ contract E_Voting is Ownable {
 
 }
 
-//E_Voting Contract Deployed to :  0x9cA5DE2675Fe65744fc7bDA4458Af231b135a9d5
-
+//E_Voting Contract Deployed to :  0x308Db139d53bE9ce9803b865d646a6880F634073

@@ -1,4 +1,4 @@
-export const E_VOTING_CONTRACT_ADDRESS = "0xC5a9eD76C0b3bF11ade40f11b36E01165192a312";
+export const E_VOTING_CONTRACT_ADDRESS = "0xaBE702105B8F3c88353AE54D16862778c3feCE41";
 
 export const E_VOTING_ABI = [
   {
@@ -86,7 +86,13 @@ export const E_VOTING_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_Address",
+        "type": "address"
+      }
+    ],
     "name": "ifVoted",
     "outputs": [
       {

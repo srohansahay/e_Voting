@@ -28,10 +28,12 @@ contract E_Voting is Ownable {
         uint256 id;
         address _CandidateAddress;
         uint256 candidate_votes;
-        //mapping(uint256 => bool) voters;
+        
     }
 
+
     mapping(uint256 => Candidate) public candidates;
+
 
     mapping(address => bool) voted;
 
@@ -62,9 +64,9 @@ contract E_Voting is Ownable {
         return totalCandidates-1;
     }
 
-    function ifVoted() external view returns(bool){
+    function ifVoted(address _Address) external view returns(bool){
        
-       if(voted[msg.sender]==true){
+       if(voted[_Address]==true){
         return true;
        } 
         return false;
@@ -73,7 +75,7 @@ contract E_Voting is Ownable {
 
     function ifElectionStarted() external view returns(bool){
 
-        if(state == State.Voting){
+        if(state != State.Created){
             return true;
         }
        
@@ -94,6 +96,7 @@ contract E_Voting is Ownable {
      require(voted[msg.sender]==false,"You have already voted from this address!");
 
      candidates[_CandidateId].candidate_votes++;
+    
      voted[msg.sender]=true;
      totalVoters++;
 
@@ -121,4 +124,4 @@ contract E_Voting is Ownable {
 
 }
 
-//E_Voting Contract Deployed to :  0xC5a9eD76C0b3bF11ade40f11b36E01165192a312
+//E_Voting Contract Deployed to :  0xaBE702105B8F3c88353AE54D16862778c3feCE41

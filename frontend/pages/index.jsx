@@ -32,6 +32,7 @@ export default function Home() {
     try {
       await getProviderOrSigner();
       setWalletConnected(true);
+      //fetchAllCandidates();
     } catch (error) {
       console.error(error);
     }
@@ -91,9 +92,12 @@ export default function Home() {
       setLoading(true);
       await txn.wait();
       await getNumCandidates();
-      await fetchAllCandidates();
-     // await setAddingCandidates(false);
+      //await fetchAllCandidates();
+      
+      //setAddingCandidates(false);
       setLoading(false);
+      setSelectedTab("Election not yet started");
+
       
     } catch (error) {
       console.error(error.message);
@@ -131,6 +135,7 @@ export default function Home() {
       console.error(error);
     }
   };
+
 
   const startElection = async() => {
     try {
@@ -189,10 +194,15 @@ export default function Home() {
       await txn.wait();
       await getNumVoters();
       await fetchAllCandidates();
+      await checkIfVoted();
       setLoading(false);
+
+      setSelectedTab("Election started and Voter");
+
       
     } catch (error) {
       console.error(error.message);
+      window.alert(error.reason);
     }
   }
 
@@ -201,7 +211,8 @@ export default function Home() {
       const provider = await getProviderOrSigner(false);
       const contract = getE_VotingContractInstance(provider);
 
-      const checkVoted = await contract.voted(web3.eth.accounts[0])
+      const checkVoted = await contract.ifVoted();
+      await fetchAllCandidates();
       
       return checkVoted;
       
@@ -210,7 +221,33 @@ export default function Home() {
     }
   }
 
-  const endElection = async() => {
+  const checkIfElectionStarted = async() => {
+    try {
+      const provider = await getProviderOrSigner(false);
+      const contract = getE_VotingContractInstance(provider);
+
+      const electionState = await contract.ifElectionStarted();
+      //const checkStarted = false;
+      if(electionState && !isOwner)
+      {
+        //checkStarted = true;
+        setSelectedTab("Election started and Voter");
+      }
+      if(electionState && isOwner)
+      {
+        setSelectedTab("Election started and Admin");
+      }
+
+      //setElectionStarted(checkStarted);
+      
+      return electionState;
+      
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
+  /*const endElection = async() => {
     try {
       const signer = await getProviderOrSigner(true);
       const contract = getE_VotingContractInstance(signer);
@@ -225,7 +262,7 @@ export default function Home() {
     } catch (error) {
       console.error(error.message);
     }
-  }  
+  }  */
 
   
 
@@ -242,6 +279,9 @@ export default function Home() {
        // getUserNFTBalance();
         getNumCandidates();
         getOwner();
+        //fetchAllCandidates();
+        checkIfElectionStarted();
+        checkIfVoted();
       });
     }
   }, [walletConnected]);
@@ -264,12 +304,26 @@ export default function Home() {
   useEffect(() => {
     if (selectedTab === "Election not yet started") {
       fetchAllCandidates();
+      checkIfElectionStarted();
+      checkIfVoted();
       console.log(candidates);
+      console.log(checkIfElectionStarted());
+      console.log(checkIfVoted());
     }
   }, [selectedTab]);
 
 
   function renderTabs() {
+    // checkIfElectionStarted();
+    /*let tab = "";
+    if(isOwner && !electionStarted){
+      tab = "Election not yet started";
+    }
+    if(!isOwner && electionStarted){
+       tab = "Election started and Voter";
+    }*/
+    //setSelectedTab(tab);
+    //fetchAllCandidates();
     if (selectedTab === "addingCandidates") {
       return addCandidateTab();
     } else if (selectedTab === "Election not yet started") {
@@ -312,6 +366,8 @@ export default function Home() {
       return (
         <div className={styles.container}>
              <h1 className={styles.title}>Welcome Admin</h1>
+             <p>Total Candidates: {numCandidates}</p>
+            
           {candidates.map((p, index) => (
             <div key={index} className={styles.login}>
               <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
@@ -333,7 +389,7 @@ export default function Home() {
     if(!isOwner && selectedTab === "Election not yet started") {
       return (
         <div className={styles.container}>
-          <h1 className={styles.title}>Winner is :</h1>
+          <h1 className={styles.title}>Candidates are :</h1>
            {candidates.map((p, index) => (
             <><div key={index} className={styles.login}>
                <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
@@ -353,67 +409,79 @@ export default function Home() {
 
   const voteTab = () => {
 
-    if (loading) {
+  /*  if (loading) {
       return (<><h1 className={styles.title}>
         Welcome to <a href="#">E-Voting</a>
       </h1><button className={styles.button}>Loading...</button></>);
     }
 
-    else if(!checkIfVoted()){
+    else */
+    let bolean = checkIfVoted();
+    if(bolean){
 
       return (
-        <div>
+        <div className={styles.container}>
+          <h1 className={styles.title}>Please Vote :</h1>
           {candidates.map((p, index) => (
-            <div key={index} className={styles.candidateCard}>
-             <p>Candidate ID: {p.candidateId}</p>
-              <p>Candidate Name: {p.candidateName}</p>
-              <p>Address: {p.candidateAddress}</p>
+            <><div key={index} className={styles.login}>
+             <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
+               <p className={styles.subheading}>Candidate Name: <span className={styles.lightText}>{p.candidateName}</span></p>
+               <p className={styles.subheading}>Address: <span className={styles.lightText}>{p.candidateAddress}</span></p>
               <div className={styles.flex}>
-                  <button
-                    className={styles.button2}
-                    onClick={() => vote(p.candidateId)}
-                  >
-                    Vote 
-                  </button>
+              <button className={styles.button2} onClick={() => vote(parseInt(p.candidateId))}>
+              Vote
+            </button>
                 </div>
-            </div>
+            </div></>
           ))}
+          
         </div>
       );
 
     }
 
-    else if(checkIfVoted()){
-      <p>You've already voted!</p>
+    else if(!bolean){
+      return(<p>You've already voted!</p>);
+      
+    } else {
+      return(<p>Bolean</p>);
     }
 
   } 
 
   const addCandidateTab = ()=> {
-    return (
-      <div className={styles.container}>
-        <h1 className={styles.title}>Add New Candidate</h1>
-        <br></br>
-      <label className={styles.subheading}>Candidate : </label>
-          <input className={styles.input}
-            placeholder="Name of the Candidate"
-            type="string"
-            onChange={(e) => setCandidateName(e.target.value)}
-          />
-          <input className={styles.input}
-            placeholder="Address of the Candidate"
-            type="string"
-            onChange={(e) => setCandidateAddress(e.target.value)}
-          />
-
-          
+    if(!loading){
+      return (
+        <div className={styles.container}>
+          <h1 className={styles.title}>Add New Candidate</h1>
           <br></br>
-          <button className={styles.button2} onClick={()=>registerCandidate((ethers.utils.getAddress(candidateAddress)),candidateName)}>
-            Register New Candidate
-          </button>
-    </div>
-
-    );
+        <label className={styles.subheading}>Candidate : </label>
+            <input className={styles.input}
+              placeholder="Name of the Candidate"
+              type="string"
+              onChange={(e) => setCandidateName(e.target.value)}
+            />
+            <input className={styles.input}
+              placeholder="Address of the Candidate"
+              type="string"
+              onChange={(e) => setCandidateAddress(e.target.value)}
+            />
+  
+            <br></br> 
+            <button className={styles.button2} onClick={()=>registerCandidate((ethers.utils.getAddress(candidateAddress)),candidateName)}>
+              Register New Candidate
+            </button> 
+      </div>
+  
+      );
+    }
+    else{
+      return(<button className={styles.button2} onClick={()=>null}>
+      Loading...
+    </button>);
+      
+    }
+   
     
   }
 
@@ -421,43 +489,49 @@ export default function Home() {
     if(!isOwner){
       return (
         <div>
+
             {candidates.map((p, index) => (
-              <div key={index} className={styles.candidateCard}>
-               <p>Candidate ID: {p.candidateId}</p>
-                <p>Candidate Name: {p.candidateName}</p>
-                <p>Address: {p.candidateAddress}</p>
-                <p>Votes: {p. candidateVotes}</p>
-              </div>
-            ))}
+            <><div key={index} className={styles.login}>
+               <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
+               <p className={styles.subheading}>Candidate Name: <span className={styles.lightText}>{p.candidateName}</span></p>
+               <p className={styles.subheading}>Address: <span className={styles.lightText}>{p.candidateAddress}</span></p>
+               <p className={styles.subheading}>Votes: <span className={styles.lightText}>16</span></p>
+
+             </div></>
+          ))}
           </div>
   
       );
     }
 
     if(isOwner){
-      <div>
-            {candidates.map((p, index) => (
-              <div key={index} className={styles.candidateCard}>
-               <p>Candidate ID: {p.candidateId}</p>
-                <p>Candidate Name: {p.candidateName}</p>
-                <p>Address: {p.candidateAddress}</p>
-                <p>Votes: {p. candidateVotes}</p>
-              </div>
-            ))}
-            <button className={styles.button2} onClick={()=> setSelectedTab("Results Tab")}>
-            End Election
-          </button>
-          </div>
+      return(
+        <div>
+          <h1 className={styles.title}>Election Status:</h1>
+        {candidates.map((p, index) => (
+            <><div key={index} className={styles.login}>
+               <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
+               <p className={styles.subheading}>Candidate Name: <span className={styles.lightText}>{p.candidateName}</span></p>
+               <p className={styles.subheading}>Address: <span className={styles.lightText}>{p.candidateAddress}</span></p>
+               <p className={styles.subheading}>Votes: <span className={styles.lightText}>{p.candidateVotes}</span></p>
 
+             </div></>
+          ))}
+        <button className={styles.button2} onClick={()=> setSelectedTab("Results Tab")}>
+        End Election
+      </button>
+      </div>
+
+      );
     }
 
   }
 
-  const resultsTab = () => {
+  /*const resultsTab = () => {
     <div>
       <p>Winner is {candidates[endElection()].candidateName}!</p>
     </div>
-  }
+  } */
 
 
     return (
@@ -476,6 +550,8 @@ export default function Home() {
         
           
           <div className={styles.description}>
+
+            
           
            {renderTabs()}
            

@@ -1,4 +1,4 @@
-export const E_VOTING_CONTRACT_ADDRESS = "0x308Db139d53bE9ce9803b865d646a6880F634073";
+export const E_VOTING_CONTRACT_ADDRESS = "0xC5a9eD76C0b3bF11ade40f11b36E01165192a312";
 
 export const E_VOTING_ABI = [
   {
@@ -70,6 +70,32 @@ export const E_VOTING_ABI = [
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "ifElectionStarted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "ifVoted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

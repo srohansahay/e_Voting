@@ -12,8 +12,6 @@ contract E_Voting is Ownable {
  constructor(){
    state = State.Created;
  }
- 
- mapping (address => bool) voted;
 
  //mapping (address => address) voterToCandidate;
 
@@ -35,8 +33,12 @@ contract E_Voting is Ownable {
 
     mapping(uint256 => Candidate) public candidates;
 
+    mapping(address => bool) voted;
+
     enum State { Created, Voting, Ended }
     State public state;
+
+
 
     modifier inState(State _state) {
         require(state == _state);
@@ -58,6 +60,25 @@ contract E_Voting is Ownable {
         totalCandidates++;
 
         return totalCandidates-1;
+    }
+
+    function ifVoted() external view returns(bool){
+       
+       if(voted[msg.sender]==true){
+        return true;
+       } 
+        return false;
+
+    }
+
+    function ifElectionStarted() external view returns(bool){
+
+        if(state == State.Voting){
+            return true;
+        }
+       
+       return false;
+
     }
 
     
@@ -100,4 +121,4 @@ contract E_Voting is Ownable {
 
 }
 
-//E_Voting Contract Deployed to :  0x308Db139d53bE9ce9803b865d646a6880F634073
+//E_Voting Contract Deployed to :  0xC5a9eD76C0b3bF11ade40f11b36E01165192a312

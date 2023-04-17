@@ -1,5 +1,4 @@
 import { ethers, Contract, providers } from "ethers";
-//import { formatEther } from "ethers/lib/utils";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
@@ -9,8 +8,6 @@ import {
 } from "../constants";
 import styles from "../styles/Home.module.css";
 
-/*import { BrowserRouter as Router, Switch, 
-  Route, Redirect,} from "react-router-dom";*/
 
 export default function Home() {
 
@@ -20,8 +17,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [numCandidates, setNumCandidates] = useState("0");
   const [numVoters, setNumVoters] = useState("0");
-  const [electionStarted, setElectionStarted] = useState(false);
-  const [electionEnded, setElectionEnded] = useState(false);
+  /*const [electionStarted, setElectionStarted] = useState(false);
+  const [electionEnded, setElectionEnded] = useState(false);*/
   const [candidateName, setCandidateName] = useState("");
   const [candidateAddress, setCandidateAddress] = useState("");
   const [candidates, setCandidates] = useState([]);
@@ -29,6 +26,7 @@ export default function Home() {
   const [winnerId, setWinnerId] = useState(1);
   /*const [addingCandidates,setAddingCandidates] = useState(false);*/
   const [selectedTab, setSelectedTab] = useState("Election not yet started");
+  
   
 
   const connectWallet = async () => {
@@ -47,8 +45,8 @@ export default function Home() {
 
     const { chainId } = await web3Provider.getNetwork();
     if (chainId !== 80001) {
-      //window.alert("Please switch to the Mumbai network!");
-     // throw new Error("Please switch to the Mumbai network");
+      window.alert("Please switch to the Mumbai network!");
+     throw new Error("Please switch to the Mumbai network");
     }
 
     if (needSigner) {
@@ -97,7 +95,6 @@ export default function Home() {
       await getNumCandidates();
       //await fetchAllCandidates();
       
-      //setAddingCandidates(false);
       setLoading(false);
       setSelectedTab("Election not yet started");
 
@@ -148,7 +145,6 @@ export default function Home() {
       const txn = await contract.startElection();
       setLoading(true);
       await txn.wait();
-     // setElectionStarted(true);
      await fetchAllCandidates();
       setLoading(false);
       if(isOwner){setSelectedTab("Election started and Admin");}
@@ -236,24 +232,7 @@ export default function Home() {
       const electionState = await contract.ifElectionStarted();
       await getOwner();
       await checkIfVoted();
-      //const checkStarted = false;
-     /* if(electionState && !isOwner && !voted)
-      {
-        //checkStarted = true;
-        setSelectedTab("Election started and Voter not yet voted");
-      }
-      if(electionState && !isOwner && voted)
-      {
-        //checkStarted = true;
-        setSelectedTab("Election started and Voter voted");
-      }
-      if(electionState && isOwner)
-      {
-        setSelectedTab("Election started and Admin");
-      }*/
-
-      //setElectionStarted(checkStarted);
-      
+     
       return electionState;
       
     } catch (error) {
@@ -273,21 +252,21 @@ export default function Home() {
       
       const checkStarted = await checkIfElectionStarted();
       const checkVoted = await checkIfVoted();
-      //const checkStarted = false;
+ 
       if(electionState)
       {
-        //checkStarted = true;
+       
         setWinnerId(_winnerId);
         setSelectedTab("Results Tab");
       }
       if(!electionState && !isOwner && checkStarted && checkVoted)
       {
-        //checkStarted = true;
+        
         setSelectedTab("Election started and Voter voted");
       }
       if(!electionState && !isOwner && checkStarted && !checkVoted)
       {
-        //checkStarted = true;
+        
         setSelectedTab("Election started and Voter not yet voted");
       }
       if(!electionState && isOwner && checkStarted)
@@ -298,7 +277,6 @@ export default function Home() {
         setSelectedTab("Election not yet started");
       }
 
-      //setElectionStarted(checkStarted);
       
       return electionState;
       
@@ -325,8 +303,6 @@ export default function Home() {
       await getOwner();
       await checkIfElectionEnded();
       
-      
-      //return ;
       
     } catch (error) {
       console.error(error.message);
@@ -459,14 +435,6 @@ export default function Home() {
   }
 
   const voterTab = () => {
-
-  /*  if (loading) {
-      return (<><h1 className={styles.title}>
-        Welcome to <a href="#">E-Voting</a>
-      </h1><button className={styles.button}>Loading...</button></>);
-    }
-
-    else */
     
       return (
         <div className={styles.container}>
@@ -632,33 +600,4 @@ export default function Home() {
       </div>
     );
 
-  
-
-  /*if(addingCandidates) {
-    return (
-      <div className={styles.container}>
-        <Head>
-          <title>E-Voting</title>
-          <meta
-            name="description"
-            content="Created with love"
-          />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-  
-        <main className={styles.main}>
-          
-          <div className={styles.description}>
-          
-           {addCandidate()}
-           
-          </div>
-  
-         
-        </main>
-      </div>
-    );
-
-
-  }*/
 }

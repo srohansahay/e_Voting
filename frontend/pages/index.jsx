@@ -237,7 +237,7 @@ export default function Home() {
       await getOwner();
       await checkIfVoted();
       //const checkStarted = false;
-      if(electionState && !isOwner && !voted)
+     /* if(electionState && !isOwner && !voted)
       {
         //checkStarted = true;
         setSelectedTab("Election started and Voter not yet voted");
@@ -250,7 +250,7 @@ export default function Home() {
       if(electionState && isOwner)
       {
         setSelectedTab("Election started and Admin");
-      }
+      }*/
 
       //setElectionStarted(checkStarted);
       
@@ -261,6 +261,53 @@ export default function Home() {
     }
   }
 
+  const checkIfElectionEnded = async() => {
+
+    try {
+      const provider = await getProviderOrSigner(false);
+      const contract = getE_VotingContractInstance(provider);
+      const _winnerId = await contract.winnerId();
+
+      const electionState = await contract.ifElectionEnded();
+      await getOwner();
+      
+      const checkStarted = await checkIfElectionStarted();
+      const checkVoted = await checkIfVoted();
+      //const checkStarted = false;
+      if(electionState)
+      {
+        //checkStarted = true;
+        setWinnerId(_winnerId);
+        setSelectedTab("Results Tab");
+      }
+      if(!electionState && !isOwner && checkStarted && checkVoted)
+      {
+        //checkStarted = true;
+        setSelectedTab("Election started and Voter voted");
+      }
+      if(!electionState && !isOwner && checkStarted && !checkVoted)
+      {
+        //checkStarted = true;
+        setSelectedTab("Election started and Voter not yet voted");
+      }
+      if(!electionState && isOwner && checkStarted)
+      {
+        setSelectedTab("Election started and Admin");
+      }
+      if(!electionState && !checkStarted){
+        setSelectedTab("Election not yet started");
+      }
+
+      //setElectionStarted(checkStarted);
+      
+      return electionState;
+      
+    } catch (error) {
+      console.error(error.message);
+    }
+  
+  }
+
   const endElection = async() => {
     try {
       const signer = await getProviderOrSigner(true);
@@ -269,16 +316,17 @@ export default function Home() {
       const txn = await contract.endElection();
       setLoading(true);
       await txn.wait();
+      const _winnerId = await contract.winnerId();
       
       setLoading(false);
-      setWinnerId(parseInt(txn));
+      setWinnerId(_winnerId);
 
       await fetchAllCandidates();
-      //await checkIfElectionStarted();
-      //await getOwner();
-      setSelectedTab("Results Tab");
+      await getOwner();
+      await checkIfElectionEnded();
       
-      return txn;
+      
+      //return ;
       
     } catch (error) {
       console.error(error.message);
@@ -307,15 +355,19 @@ export default function Home() {
 
 
   useEffect(() => {
-    
+
+    if(selectedTab !== "addingCandidates")
+    {
       getOwner();
       fetchAllCandidates();
       checkIfElectionStarted();
+      checkIfElectionEnded();
       checkIfVoted();
       console.log(candidates);
       console.log(checkIfElectionStarted());
+      console.log(checkIfElectionEnded());
       console.log(checkIfVoted());
-      
+    }
     
   }, [selectedTab],[]);
 
@@ -395,10 +447,9 @@ export default function Home() {
                <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
                <p className={styles.subheading}>Candidate Name: <span className={styles.lightText}>{p.candidateName}</span></p>
                <p className={styles.subheading}>Address: <span className={styles.lightText}>{p.candidateAddress}</span></p>
-               <p className={styles.subheading}>Votes: <span className={styles.lightText}>16</span></p>
-
              </div></>
           ))}
+          <p>Total Candidates: {numCandidates}</p>
             <p>Election is not yet started.</p>
           </div>
       );
@@ -525,14 +576,36 @@ export default function Home() {
   }
 
   const resultsTab = () => {
+
+    //const firstObject = Object.values(candidates[winnerId]);
+
+    /*let names;
+
+    for(let i=0;i < numCandidates;i++)
+    {
+     names[i] = candidates[i].candidateName;
+    }*/
+
+    /*const str = JSON.stringify(candidates[winnerId]);
+    const winnerName = str.substring(str.indexOf(":")+1,str.indexOf(","));*/
+
+
     return(
       <div>
-      <p>Winner is Jarvo!</p>
+      <p>Final results: </p>
+      {candidates.map((p, {index}) => (
+            <><div key={index} className={styles.login}>
+               <p className={styles.subheading}>Candidate ID: <span className={styles.lightText}>{p.candidateId}</span> </p>
+               <p className={styles.subheading}>Candidate Name: <span className={styles.lightText}>{p.candidateName}</span></p>
+               <p className={styles.subheading}>Address: <span className={styles.lightText}>{p.candidateAddress}</span></p>
+               <p className={styles.subheading}>Votes: <span className={styles.lightText}>{p.candidateVotes}</span></p>
+
+             </div></>
+          ))}
     </div>
     );
     
   } 
-
 
     return (
       <div className={styles.container}>

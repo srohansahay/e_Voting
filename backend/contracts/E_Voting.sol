@@ -7,6 +7,7 @@ contract E_Voting is Ownable {
 
  uint256 public totalCandidates;
  uint256 public totalVoters;
+ uint256 public winnerId;
  //uint256 public totalElections;
 
  constructor(){
@@ -83,6 +84,16 @@ contract E_Voting is Ownable {
 
     }
 
+       function ifElectionEnded() external view returns(bool){
+
+        if(state == State.Ended){
+            return true;
+        }
+       
+       return false;
+
+    }
+
     
     function startElection() external inState(State.Created) onlyOwner {
 
@@ -102,21 +113,21 @@ contract E_Voting is Ownable {
 
     }
 
-    function endElection() external inState(State.Voting) onlyOwner returns(uint256) {
+    function endElection() external inState(State.Voting) onlyOwner {
 
      state = State.Ended;
 
      uint256 maxVotes = candidates[0].candidate_votes;
-     uint256 winnerId = 0;
+     uint256 _winnerId = 0;
 
      for(uint256 i=0; i<totalCandidates;i++){
       if(candidates[i].candidate_votes>maxVotes){
        maxVotes = candidates[i].candidate_votes;
-       winnerId = i;
+       _winnerId = i;
       }
      }
 
-     return winnerId;
+     winnerId = _winnerId;
 
     }
 
@@ -124,4 +135,4 @@ contract E_Voting is Ownable {
 
 }
 
-//E_Voting Contract Deployed to :  0xaBE702105B8F3c88353AE54D16862778c3feCE41
+//E_Voting Contract Deployed to :  0x96a601fDd0C80C6Bc1421517B24e4FC10c92CE7F

@@ -17,23 +17,18 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [numCandidates, setNumCandidates] = useState("0");
   const [numVoters, setNumVoters] = useState("0");
-  /*const [electionStarted, setElectionStarted] = useState(false);
-  const [electionEnded, setElectionEnded] = useState(false);*/
   const [candidateName, setCandidateName] = useState("");
   const [candidateAddress, setCandidateAddress] = useState("");
   const [candidates, setCandidates] = useState([]);
   const [voted, setVoted] = useState(false);
   const [winnerId, setWinnerId] = useState(1);
-  /*const [addingCandidates,setAddingCandidates] = useState(false);*/
   const [selectedTab, setSelectedTab] = useState("Election not yet started");
-  
   
 
   const connectWallet = async () => {
     try {
       await getProviderOrSigner();
       setWalletConnected(true);
-      //fetchAllCandidates();
     } catch (error) {
       console.error(error);
     }
@@ -45,8 +40,8 @@ export default function Home() {
 
     const { chainId } = await web3Provider.getNetwork();
     if (chainId !== 80001) {
-      window.alert("Please switch to the Mumbai network!");
-     throw new Error("Please switch to the Mumbai network");
+     /* window.alert("Please switch to the Mumbai network!");
+     throw new Error("Please switch to the Mumbai network");*/
     }
 
     if (needSigner) {
@@ -93,11 +88,9 @@ export default function Home() {
       setLoading(true);
       await txn.wait();
       await getNumCandidates();
-      //await fetchAllCandidates();
       
       setLoading(false);
       setSelectedTab("Election not yet started");
-
       
     } catch (error) {
       console.error(error.message);
@@ -150,7 +143,6 @@ export default function Home() {
       if(isOwner){setSelectedTab("Election started and Admin");}
       else{setSelectedTab("Election started and Voter");}
       
-      
     } catch (error) {
       console.error(error.message);
     }
@@ -197,7 +189,6 @@ export default function Home() {
       setLoading(false);
 
       setSelectedTab("Election started and Voter");
-
       
     } catch (error) {
       console.error(error.message);
@@ -214,8 +205,6 @@ export default function Home() {
       await fetchAllCandidates();
 
       setVoted(checkVoted);
-
-
       
       return checkVoted;
       
@@ -277,7 +266,6 @@ export default function Home() {
         setSelectedTab("Election not yet started");
       }
 
-      
       return electionState;
       
     } catch (error) {
@@ -302,7 +290,6 @@ export default function Home() {
       await fetchAllCandidates();
       await getOwner();
       await checkIfElectionEnded();
-      
       
     } catch (error) {
       console.error(error.message);
@@ -339,6 +326,7 @@ export default function Home() {
       checkIfElectionStarted();
       checkIfElectionEnded();
       checkIfVoted();
+      connectWallet();
       console.log(candidates);
       console.log(checkIfElectionStarted());
       console.log(checkIfElectionEnded());
@@ -383,7 +371,6 @@ export default function Home() {
       );
     }
   
-
     if (loading) {
       return (<><div className={styles.login}><h1 className={styles.title}>
         Welcome to <a href="#">E-Voting</a>
@@ -545,19 +532,6 @@ export default function Home() {
 
   const resultsTab = () => {
 
-    //const firstObject = Object.values(candidates[winnerId]);
-
-    /*let names;
-
-    for(let i=0;i < numCandidates;i++)
-    {
-     names[i] = candidates[i].candidateName;
-    }*/
-
-    /*const str = JSON.stringify(candidates[winnerId]);
-    const winnerName = str.substring(str.indexOf(":")+1,str.indexOf(","));*/
-
-
     return(
       <div>
       <p>Final results: </p>
@@ -593,8 +567,7 @@ export default function Home() {
            {renderTabs()}
            
           </div>
-  
-         
+
         </main>
        
       </div>

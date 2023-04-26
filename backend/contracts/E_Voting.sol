@@ -14,16 +14,6 @@ contract E_Voting is Ownable {
    state = State.Created;
  }
 
- //mapping (address => address) voterToCandidate;
-
-
-  /*struct Voter {
-     //   uint256 id;
-     //   string name;
-        address voterAddress;
-        address _CandidateAddress;
-    }*/
-
     struct Candidate {
         string name;
         uint256 id;
@@ -32,16 +22,12 @@ contract E_Voting is Ownable {
         
     }
 
-
     mapping(uint256 => Candidate) public candidates;
-
 
     mapping(address => bool) voted;
 
     enum State { Created, Voting, Ended }
     State public state;
-
-
 
     modifier inState(State _state) {
         require(state == _state);
@@ -130,9 +116,7 @@ contract E_Voting is Ownable {
      winnerId = _winnerId;
 
     }
-
-   
-
+    
 }
 
-//E_Voting Contract Deployed to :  0x96a601fDd0C80C6Bc1421517B24e4FC10c92CE7F
+//E_Voting Contract Deployed to :  0x78fed272f9444A705585f40fd1eA8ac8B0B50C57
